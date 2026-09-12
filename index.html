@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>京橋駅出発駅ルーレット - Kyobashi Station Departure Roulette</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700;900&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #000000;
+            --white: #FFFFFF;
+            --gray-100: #F5F5F5;
+            --gray-200: #E5E5E5;
+            --gray-300: #D4D4D4;
+            --gray-400: #A3A3A3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --gray-900: #171717;
+            
+            /* 差し色 */
+            --accent-primary: #FF3B30;
+            --accent-secondary: #007AFF;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--white);
+            color: var(--black);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+        
+        /* 背景の幾何学パターン */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, var(--gray-100) 1px, transparent 1px),
+                linear-gradient(0deg, var(--gray-100) 1px, transparent 1px);
+            background-size: 80px 80px;
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            background: var(--white);
+            border: 2px solid var(--black);
+            padding: 60px 50px;
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            box-shadow: 12px 12px 0 var(--black);
+            z-index: 1;
+            animation: containerEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes containerEntry {
+            from {
+                opacity: 0;
+                transform: translate(-10px, -10px);
+                box-shadow: 0 0 0 var(--black);
+            }
+            to {
+                opacity: 1;
+                transform: translate(0, 0);
+                box-shadow: 12px 12px 0 var(--black);
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            border-bottom: 3px solid var(--black);
+            padding-bottom: 30px;
+            animation: fadeIn 0.6s ease 0.2s backwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            color: var(--black);
+        }
+        
+        .subtitle {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gray-500);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .time-filter {
+            background: var(--gray-100);
+            border: 2px solid var(--black);
+            padding: 40px 35px;
+            margin-bottom: 40px;
+            position: relative;
+            animation: slideIn 0.6s ease 0.4s backwards;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* コーナーアクセント */
+        .time-filter::before,
+        .time-filter::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--accent-primary);
+        }
+        
+        .time-filter::before {
+            top: -3px;
+            left: -3px;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        .time-filter::after {
+            bottom: -3px;
+            right: -3px;
+            border-left: none;
+            border-top: none;
+        }
+        
+        .time-filter h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 30px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--black);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .slider-label span {
+            position: relative;
+        }
+        
+        .slider-label span::after {
+            content: 'MIN';
+            position: absolute;
+            bottom: -18px;
+            left: 0;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--gray-400);
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .slider-wrapper {
+            position: relative;
+            height: 60px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--gray-300);
+            outline: none;
+            position: absolute;
+            top: 27px;
+            pointer-events: none;
+            border: 1px solid var(--black);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            background: var(--black);
+            cursor: pointer;
+            pointer-events: all;
+            border: 3px solid var(--white);
+            box-shadow: 0 0 0 2px var(--black);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--accent-primary);
+            transform: scale(1.15);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(0.95);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 32px;
+            height: 32px;
+            background: var(--black);
+            cursor: pointer;
+            pointer-events: all;
+            border: 3px solid var(--white);
+            box-shadow: 0 0 0 2px var(--black);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-moz-range-thumb:hover {
+            background: var(--accent-primary);
+            transform: scale(1.15);
+        }
+        
+        #minTime {
+            z-index: 2;
+        }
+        
+        #maxTime {
+            z-index: 2;
+        }
+        
+        .range-fill {
+            position: absolute;
+            top: 27px;
+            height: 6px;
+            background: var(--black);
+            border: 1px solid var(--black);
+            transition: all 0.3s ease;
+        }
+        
+        .station-count {
+            text-align: right;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-secondary);
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.05em;
+        }
+        
+        .roulette-display {
+            background: var(--white);
+            border: 3px solid var(--black);
+            padding: 80px 40px;
+            margin-bottom: 40px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            animation: scaleIn 0.6s ease 0.6s backwards;
+        }
+        
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* アクセントライン */
+        .roulette-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: var(--accent-primary);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        
+        .roulette-display.spinning::before {
+            transform: scaleX(1);
+        }
+        
+        .station-name {
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--black);
+            text-align: center;
+            letter-spacing: -0.04em;
+            position: relative;
+            z-index: 1;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        .travel-time {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-500);
+            margin-top: 20px;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.05em;
+        }
+        
+        .spinning .station-name {
+            animation: flicker 0.1s ease-in-out infinite;
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            animation: fadeIn 0.6s ease 0.8s backwards;
+        }
+        
+        button {
+            background: var(--black);
+            color: var(--white);
+            border: 3px solid var(--black);
+            padding: 22px 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Noto Sans JP', sans-serif;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-primary);
+            transition: left 0.4s ease;
+            z-index: 0;
+        }
+        
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: -3px -3px 0 var(--accent-secondary);
+        }
+        
+        button:hover:not(:disabled)::before {
+            left: 0;
+        }
+        
+        button:active:not(:disabled) {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+        
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info {
+            margin-top: 40px;
+            padding: 30px;
+            background: var(--white);
+            border: 2px solid var(--black);
+            border-left: 6px solid var(--accent-secondary);
+            font-size: 13px;
+            color: var(--gray-700);
+            line-height: 1.9;
+            font-family: 'Noto Sans JP', sans-serif;
+            animation: fadeIn 0.6s ease 1s backwards;
+        }
+        
+        .info strong {
+            color: var(--black);
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .result-info {
+            margin-top: 30px;
+            padding: 30px;
+            background: var(--black);
+            color: var(--white);
+            border: 3px solid var(--black);
+            text-align: center;
+            display: none;
+            position: relative;
+        }
+        
+        .result-info::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-primary);
+            z-index: -1;
+        }
+        
+        .result-info.show {
+            display: block;
+            animation: resultEntry 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes resultEntry {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 15px;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        .line-info {
+            color: var(--gray-300);
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 1.8;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 30px;
+                box-shadow: 8px 8px 0 var(--black);
+            }
+            
+            h1 {
+                font-size: 36px;
+            }
+            
+            .station-name {
+                font-size: 48px;
+            }
+            
+            button {
+                padding: 18px 40px;
+                font-size: 14px;
+            }
+            
+            .slider-label {
+                font-size: 24px;
+            }
+        }
+        
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 14px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border: 1px solid var(--gray-300);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--black);
+            border: 3px solid var(--gray-100);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>京橋駅出発駅ルーレット</h1>
+            <p class="subtitle">Kyobashi Station Departure Roulette</p>
+        </div>
+        
+        <div class="time-filter">
+            <h3>⏱ Travel Time</h3>
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span id="minLabel">0</span>
+                    <span id="maxLabel">60</span>
+                </div>
+                <div class="slider-wrapper">
+                    <div class="range-fill" id="rangeFill"></div>
+                    <input type="range" id="minTime" min="0" max="60" value="0" step="5">
+                    <input type="range" id="maxTime" min="0" max="60" value="60" step="5">
+                </div>
+            </div>
+            <div class="station-count" id="stationCount">STATIONS: 0</div>
+        </div>
+        
+        <div class="roulette-display" id="rouletteDisplay">
+            <div class="station-name" id="stationDisplay">START</div>
+            <div class="travel-time" id="travelTime"></div>
+        </div>
+        
+        <div class="button-container">
+            <button id="startButton" onclick="startRoulette()"><span>ルーレット開始</span></button>
+        </div>
+        
+        <div class="result-info" id="resultInfo">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="line-info" id="lineInfo"></div>
+        </div>
+        
+        <div class="info">
+            <strong>📍 対象駅について</strong><br>
+            京橋駅から普通・快速列車での所要時間 / 新幹線・バス・有料特急は除外 / JR・私鉄・地下鉄・モノレール・路面電車を完全網羅 / 対象駅数：507駅（60分圏内）
+        </div>
+    </div>
+
+    <script>
+        const stations = [
+            {name: "京橋", time: 0, lines: ["京阪本線", "JR大阪環状線・学研都市線・東西線", "大阪メトロ長堀鶴見緑地線"]},
+            {name: "大阪", time: 7, lines: ["JR大阪環状線・東海道本線・大阪東線", "大阪メトロ御堂筋線・四つ橋線・谷町線"]},
+            {name: "天王寺", time: 15, lines: ["JR大阪環状線・関西本線・阪和線", "大阪メトロ御堂筋線・谷町線", "近鉄南大阪線", "阪堺電軌"]},
+            {name: "鶴橋", time: 8, lines: ["JR大阪環状線", "近鉄大阪線・奈良線", "大阪メトロ千日前線"]},
+            {name: "玉造", time: 4, lines: ["JR大阪環状線", "大阪メトロ長堀鶴見緑地線"]},
+            {name: "森ノ宮", time: 3, lines: ["JR大阪環状線", "大阪メトロ中央線・長堀鶴見緑地線"]},
+            {name: "大阪城公園", time: 2, lines: ["JR大阪環状線"]},
+            {name: "桜ノ宮", time: 4, lines: ["JR大阪環状線"]},
+            {name: "天満", time: 6, lines: ["JR大阪環状線"]},
+            {name: "福島", time: 10, lines: ["JR大阪環状線", "阪神本線"]},
+            {name: "西九条", time: 13, lines: ["JR大阪環状線・ゆめ咲線", "阪神なんば線"]},
+            {name: "安治川口", time: 16, lines: ["JRゆめ咲線"]},
+            {name: "ユニバーサルシティ", time: 18, lines: ["JRゆめ咲線"]},
+            {name: "桜島", time: 20, lines: ["JRゆめ咲線"]},
+            {name: "弁天町", time: 16, lines: ["JR大阪環状線", "大阪メトロ中央線"]},
+            {name: "大正", time: 19, lines: ["JR大阪環状線", "大阪メトロ長堀鶴見緑地線"]},
+            {name: "芦原橋", time: 21, lines: ["JR大阪環状線"]},
+            {name: "今宮", time: 13, lines: ["JR大阪環状線・関西本線", "南海本線"]},
+            {name: "新今宮", time: 14, lines: ["JR大阪環状線・関西本線", "南海本線・高野線", "大阪メトロ御堂筋線・堺筋線"]},
+            {name: "寺田町", time: 11, lines: ["JR大阪環状線"]},
+            {name: "桃谷", time: 10, lines: ["JR大阪環状線"]},
+            {name: "鴫野", time: 3, lines: ["JR学研都市線", "大阪メトロ今里筋線"]},
+            {name: "放出", time: 5, lines: ["JR学研都市線", "JRおおさか東線"]},
+            {name: "徳庵", time: 8, lines: ["JR学研都市線"]},
+            {name: "鴻池新田", time: 11, lines: ["JR学研都市線"]},
+            {name: "住道", time: 14, lines: ["JR学研都市線"]},
+            {name: "野崎", time: 18, lines: ["JR学研都市線"]},
+            {name: "四条畷", time: 22, lines: ["JR学研都市線"]},
+            {name: "忍ケ丘", time: 26, lines: ["JR学研都市線"]},
+            {name: "寝屋川公園", time: 30, lines: ["JR学研都市線"]},
+            {name: "星田", time: 33, lines: ["JR学研都市線"]},
+            {name: "村野", time: 36, lines: ["JR学研都市線"]},
+            {name: "藤阪", time: 38, lines: ["JR学研都市線"]},
+            {name: "長尾", time: 40, lines: ["JR学研都市線"]},
+            {name: "松井山手", time: 45, lines: ["JR学研都市線"]},
+            {name: "大住", time: 48, lines: ["JR学研都市線"]},
+            {name: "京田辺", time: 50, lines: ["JR学研都市線", "近鉄京都線"]},
+            {name: "同志社前", time: 53, lines: ["JR学研都市線"]},
+            {name: "三山木", time: 56, lines: ["JR学研都市線", "近鉄京都線"]},
+            {name: "大阪城北詰", time: 1, lines: ["JR東西線"]},
+            {name: "大阪天満宮", time: 5, lines: ["JR東西線", "大阪メトロ谷町線"]},
+            {name: "北新地", time: 7, lines: ["JR東西線"]},
+            {name: "新福島", time: 9, lines: ["JR東西線", "阪神本線"]},
+            {name: "海老江", time: 11, lines: ["JR東西線"]},
+            {name: "御幣島", time: 13, lines: ["JR東西線"]},
+            {name: "加島", time: 15, lines: ["JR東西線"]},
+            {name: "尼崎", time: 18, lines: ["JR東西線・東海道本線・福知山線", "阪神本線"]},
+            {name: "新加美", time: 12, lines: ["JR大阪東線"]},
+            {name: "久宝寺", time: 15, lines: ["JR大阪東線・関西本線"]},
+            {name: "衣摺加美北", time: 17, lines: ["JR大阪東線"]},
+            {name: "高井田中央", time: 8, lines: ["JR大阪東線", "大阪メトロ中央線"]},
+            {name: "JR河内永和", time: 11, lines: ["JR大阪東線", "近鉄奈良線"]},
+            {name: "JR俊徳道", time: 13, lines: ["JR大阪東線", "近鉄大阪線"]},
+            {name: "JR長瀬", time: 15, lines: ["JR大阪東線", "近鉄大阪線"]},
+            {name: "新大阪", time: 12, lines: ["JR大阪東線・東海道本線", "大阪メトロ御堂筋線"]},
+            {name: "南吹田", time: 15, lines: ["JR大阪東線"]},
+            {name: "塚本", time: 10, lines: ["JR東海道本線"]},
+            {name: "吹田", time: 14, lines: ["JR東海道本線", "阪急千里線"]},
+            {name: "立花", time: 22, lines: ["JR東海道本線"]},
+            {name: "甲子園口", time: 25, lines: ["JR東海道本線"]},
+            {name: "西宮", time: 28, lines: ["JR東海道本線"]},
+            {name: "さくら夙川", time: 31, lines: ["JR東海道本線"]},
+            {name: "芦屋", time: 34, lines: ["JR東海道本線", "阪神本線"]},
+            {name: "甲南山手", time: 38, lines: ["JR東海道本線"]},
+            {name: "摂津本山", time: 40, lines: ["JR東海道本線"]},
+            {name: "住吉", time: 43, lines: ["JR東海道本線"]},
+            {name: "六甲道", time: 46, lines: ["JR東海道本線"]},
+            {name: "灘", time: 49, lines: ["JR東海道本線"]},
+            {name: "三ノ宮", time: 52, lines: ["JR東海道本線", "阪急神戸線", "阪神本線", "神戸市営地下鉄"]},
+            {name: "元町", time: 54, lines: ["JR東海道本線", "阪神本線"]},
+            {name: "神戸", time: 56, lines: ["JR東海道本線", "神戸市営地下鉄"]},
+            {name: "塚口", time: 22, lines: ["JR福知山線", "阪急神戸線"]},
+            {name: "猪名寺", time: 25, lines: ["JR福知山線"]},
+            {name: "伊丹", time: 28, lines: ["JR福知山線"]},
+            {name: "北伊丹", time: 31, lines: ["JR福知山線"]},
+            {name: "川西池田", time: 35, lines: ["JR福知山線", "阪急宝塚線"]},
+            {name: "中山寺", time: 38, lines: ["JR福知山線"]},
+            {name: "宝塚", time: 42, lines: ["JR福知山線", "阪急宝塚線"]},
+            {name: "生瀬", time: 46, lines: ["JR福知山線"]},
+            {name: "西宮名塩", time: 50, lines: ["JR福知山線"]},
+            {name: "武田尾", time: 54, lines: ["JR福知山線"]},
+            {name: "JR難波", time: 20, lines: ["JR関西本線"]},
+            {name: "平野", time: 18, lines: ["JR関西本線", "大阪メトロ谷町線"]},
+            {name: "加美", time: 15, lines: ["JR関西本線"]},
+            {name: "八尾", time: 20, lines: ["JR関西本線"]},
+            {name: "志紀", time: 23, lines: ["JR関西本線"]},
+            {name: "柏原", time: 26, lines: ["JR関西本線", "近鉄大阪線"]},
+            {name: "河内堅上", time: 29, lines: ["JR関西本線"]},
+            {name: "高井田", time: 32, lines: ["JR関西本線"]},
+            {name: "王寺", time: 38, lines: ["JR関西本線・和歌山線", "近鉄生駒線"]},
+            {name: "法隆寺", time: 42, lines: ["JR関西本線"]},
+            {name: "大和小泉", time: 46, lines: ["JR関西本線"]},
+            {name: "郡山", time: 50, lines: ["JR関西本線"]},
+            {name: "奈良", time: 55, lines: ["JR関西本線"]},
+            {name: "美章園", time: 17, lines: ["JR阪和線"]},
+            {name: "南田辺", time: 19, lines: ["JR阪和線"]},
+            {name: "鶴ヶ丘", time: 21, lines: ["JR阪和線"]},
+            {name: "長居", time: 23, lines: ["JR阪和線", "大阪メトロ御堂筋線"]},
+            {name: "我孫子町", time: 25, lines: ["JR阪和線"]},
+            {name: "杉本町", time: 27, lines: ["JR阪和線"]},
+            {name: "浅香", time: 29, lines: ["JR阪和線"]},
+            {name: "堺市", time: 31, lines: ["JR阪和線"]},
+            {name: "三国ヶ丘", time: 33, lines: ["JR阪和線", "南海高野線"]},
+            {name: "百舌鳥", time: 35, lines: ["JR阪和線"]},
+            {name: "上野芝", time: 37, lines: ["JR阪和線"]},
+            {name: "津久野", time: 39, lines: ["JR阪和線"]},
+            {name: "鳳", time: 42, lines: ["JR阪和線"]},
+            {name: "富木", time: 45, lines: ["JR阪和線"]},
+            {name: "北信太", time: 47, lines: ["JR阪和線"]},
+            {name: "信太山", time: 49, lines: ["JR阪和線"]},
+            {name: "和泉府中", time: 52, lines: ["JR阪和線"]},
+            {name: "久米田", time: 55, lines: ["JR阪和線"]},
+            {name: "下松", time: 57, lines: ["JR阪和線"]},
+            {name: "梅田", time: 10, lines: ["大阪メトロ御堂筋線", "阪急・阪神各線"]},
+            {name: "淀屋橋", time: 8, lines: ["大阪メトロ御堂筋線", "京阪本線"]},
+            {name: "本町", time: 10, lines: ["大阪メトロ御堂筋線・中央線・四つ橋線"]},
+            {name: "心斎橋", time: 12, lines: ["大阪メトロ御堂筋線・長堀鶴見緑地線"]},
+            {name: "なんば", time: 14, lines: ["大阪メトロ御堂筋線・四つ橋線・千日前線", "近鉄奈良線", "南海本線・高野線", "阪神なんば線"]},
+            {name: "大国町", time: 17, lines: ["大阪メトロ御堂筋線・四つ橋線"]},
+            {name: "動物園前", time: 18, lines: ["大阪メトロ御堂筋線・堺筋線"]},
+            {name: "昭和町", time: 20, lines: ["大阪メトロ御堂筋線"]},
+            {name: "西田辺", time: 22, lines: ["大阪メトロ御堂筋線"]},
+            {name: "あびこ", time: 26, lines: ["大阪メトロ御堂筋線"]},
+            {name: "北花田", time: 31, lines: ["大阪メトロ御堂筋線"]},
+            {name: "新金岡", time: 33, lines: ["大阪メトロ御堂筋線"]},
+            {name: "中百舌鳥", time: 37, lines: ["大阪メトロ御堂筋線", "南海高野線", "泉北高速鉄道"]},
+            {name: "東梅田", time: 9, lines: ["大阪メトロ谷町線"]},
+            {name: "南森町", time: 7, lines: ["大阪メトロ谷町線・堺筋線", "JR東西線"]},
+            {name: "天満橋", time: 6, lines: ["大阪メトロ谷町線", "京阪本線"]},
+            {name: "谷町四丁目", time: 8, lines: ["大阪メトロ谷町線・中央線"]},
+            {name: "谷町六丁目", time: 10, lines: ["大阪メトロ谷町線・長堀鶴見緑地線"]},
+            {name: "谷町九丁目", time: 12, lines: ["大阪メトロ谷町九丁目・千日前線", "近鉄大阪線"]},
+            {name: "四天王寺前夕陽ヶ丘", time: 14, lines: ["大阪メトロ谷町線"]},
+            {name: "阿倍野", time: 17, lines: ["大阪メトロ谷町線", "阪堺電軌"]},
+            {name: "文の里", time: 19, lines: ["大阪メトロ谷町線"]},
+            {name: "田辺", time: 21, lines: ["大阪メトロ谷町線"]},
+            {name: "駒川中野", time: 23, lines: ["大阪メトロ谷町線"]},
+            {name: "喜連瓜破", time: 27, lines: ["大阪メトロ谷町線"]},
+            {name: "出戸", time: 29, lines: ["大阪メトロ谷町線"]},
+            {name: "長原", time: 31, lines: ["大阪メトロ谷町線"]},
+            {name: "八尾南", time: 33, lines: ["大阪メトロ谷町線"]},
+            {name: "コスモスクエア", time: 38, lines: ["大阪メトロ中央線", "ニュートラム"]},
+            {name: "大阪港", time: 22, lines: ["大阪メトロ中央線"]},
+            {name: "朝潮橋", time: 20, lines: ["大阪メトロ中央線"]},
+            {name: "九条", time: 16, lines: ["大阪メトロ中央線", "阪神なんば線"]},
+            {name: "阿波座", time: 14, lines: ["大阪メトロ中央線・千日前線"]},
+            {name: "堺筋本町", time: 10, lines: ["大阪メトロ中央線・堺筋線"]},
+            {name: "緑橋", time: 7, lines: ["大阪メトロ中央線・今里筋線"]},
+            {name: "深江橋", time: 9, lines: ["大阪メトロ中央線"]},
+            {name: "長田", time: 13, lines: ["大阪メトロ中央線・千日前線"]},
+            {name: "荒本", time: 15, lines: ["大阪メトロ中央線"]},
+            {name: "吉田", time: 17, lines: ["大阪メトロ中央線"]},
+            {name: "野田阪神", time: 15, lines: ["大阪メトロ千日前線", "阪神本線"]},
+            {name: "玉川", time: 16, lines: ["大阪メトロ千日前線"]},
+            {name: "西長堀", time: 18, lines: ["大阪メトロ千日前線・長堀鶴見緑地線"]},
+            {name: "桜川", time: 19, lines: ["大阪メトロ千日前線", "阪神なんば線"]},
+            {name: "日本橋", time: 18, lines: ["大阪メトロ千日前線・堺筋線"]},
+            {name: "今里", time: 10, lines: ["大阪メトロ千日前線・今里筋線", "近鉄奈良線"]},
+            {name: "新深江", time: 12, lines: ["大阪メトロ千日前線"]},
+            {name: "小路", time: 14, lines: ["大阪メトロ千日前線"]},
+            {name: "北巽", time: 16, lines: ["大阪メトロ千日前線"]},
+            {name: "南巽", time: 18, lines: ["大阪メトロ千日前線"]},
+            {name: "天神橋筋六丁目", time: 8, lines: ["大阪メトロ堺筋線・今里筋線", "阪急千里線"]},
+            {name: "扇町", time: 9, lines: ["大阪メトロ堺筋線"]},
+            {name: "北浜", time: 12, lines: ["大阪メトロ堺筋線", "京阪本線"]},
+            {name: "長堀橋", time: 16, lines: ["大阪メトロ堺筋線・長堀鶴見緑地線"]},
+            {name: "恵美須町", time: 20, lines: ["大阪メトロ堺筋線", "阪堺電軌"]},
+            {name: "天下茶屋", time: 23, lines: ["大阪メトロ堺筋線", "南海本線・高野線"]},
+            {name: "ドーム前千代崎", time: 23, lines: ["大阪メトロ長堀鶴見緑地線", "阪神なんば線"]},
+            {name: "西大橋", time: 18, lines: ["大阪メトロ長堀鶴見緑地線"]},
+            {name: "松屋町", time: 12, lines: ["大阪メトロ長堀鶴見緑地線"]},
+            {name: "大阪ビジネスパーク", time: 4, lines: ["大阪メトロ長堀鶴見緑地線"]},
+            {name: "蒲生四丁目", time: 4, lines: ["大阪メトロ長堀鶴見緑地線・今里筋線"]},
+            {name: "今福鶴見", time: 6, lines: ["大阪メトロ長堀鶴見緑地線"]},
+            {name: "横堤", time: 8, lines: ["大阪メトロ長堀鶴見緑地線"]},
+            {name: "鶴見緑地", time: 10, lines: ["大阪メトロ長堀鶴見緑地線"]},
+            {name: "井高野", time: 20, lines: ["大阪メトロ今里筋線"]},
+            {name: "瑞光四丁目", time: 18, lines: ["大阪メトロ今里筋線"]},
+            {name: "だいどう豊里", time: 16, lines: ["大阪メトロ今里筋線"]},
+            {name: "太子橋今市", time: 14, lines: ["大阪メトロ今里筋線"]},
+            {name: "清水", time: 12, lines: ["大阪メトロ今里筋線"]},
+            {name: "新森古市", time: 10, lines: ["大阪メトロ今里筋線"]},
+            {name: "関目成育", time: 8, lines: ["大阪メトロ今里筋線"]},
+            {name: "西梅田", time: 12, lines: ["大阪メトロ四つ橋線"]},
+            {name: "肥後橋", time: 13, lines: ["大阪メトロ四つ橋線"]},
+            {name: "四ツ橋", time: 15, lines: ["大阪メトロ四つ橋線"]},
+            {name: "花園町", time: 20, lines: ["大阪メトロ四つ橋線"]},
+            {name: "岸里", time: 22, lines: ["大阪メトロ四つ橋線"]},
+            {name: "玉出", time: 24, lines: ["大阪メトロ四つ橋線"]},
+            {name: "北加賀屋", time: 26, lines: ["大阪メトロ四つ橋線"]},
+            {name: "住之江公園", time: 28, lines: ["大阪メトロ四つ橋線", "ニュートラム"]},
+            {name: "平林", time: 30, lines: ["ニュートラム"]},
+            {name: "ポートタウン東", time: 31, lines: ["ニュートラム"]},
+            {name: "ポートタウン西", time: 32, lines: ["ニュートラム"]},
+            {name: "南港口", time: 33, lines: ["ニュートラム"]},
+            {name: "南港東", time: 34, lines: ["ニュートラム"]},
+            {name: "フェリーターミナル", time: 35, lines: ["ニュートラム"]},
+            {name: "トレードセンター前", time: 36, lines: ["ニュートラム"]},
+            {name: "中ふ頭", time: 37, lines: ["ニュートラム"]},
+            {name: "野江", time: 3, lines: ["京阪本線"]},
+            {name: "関目", time: 5, lines: ["京阪本線"]},
+            {name: "森小路", time: 7, lines: ["京阪本線"]},
+            {name: "千林", time: 9, lines: ["京阪本線"]},
+            {name: "滝井", time: 11, lines: ["京阪本線"]},
+            {name: "土居", time: 13, lines: ["京阪本線"]},
+            {name: "守口市", time: 5, lines: ["京阪本線", "大阪メトロ谷町線"]},
+            {name: "西三荘", time: 8, lines: ["京阪本線"]},
+            {name: "門真市", time: 10, lines: ["京阪本線", "大阪モノレール"]},
+            {name: "古川橋", time: 12, lines: ["京阪本線"]},
+            {name: "大和田", time: 14, lines: ["京阪本線"]},
+            {name: "萱島", time: 16, lines: ["京阪本線"]},
+            {name: "寝屋川市", time: 18, lines: ["京阪本線"]},
+            {name: "香里園", time: 20, lines: ["京阪本線"]},
+            {name: "光善寺", time: 22, lines: ["京阪本線"]},
+            {name: "枚方公園", time: 24, lines: ["京阪本線"]},
+            {name: "枚方市", time: 26, lines: ["京阪本線"]},
+            {name: "御殿山", time: 28, lines: ["京阪本線"]},
+            {name: "牧野", time: 30, lines: ["京阪本線"]},
+            {name: "樟葉", time: 33, lines: ["京阪本線"]},
+            {name: "橋本", time: 35, lines: ["京阪本線"]},
+            {name: "石清水八幡宮", time: 38, lines: ["京阪本線"]},
+            {name: "八幡市", time: 40, lines: ["京阪本線"]},
+            {name: "淀", time: 45, lines: ["京阪本線"]},
+            {name: "中書島", time: 50, lines: ["京阪本線・宇治線"]},
+            {name: "伏見桃山", time: 52, lines: ["京阪本線"]},
+            {name: "丹波橋", time: 53, lines: ["京阪本線", "近鉄京都線"]},
+            {name: "墨染", time: 55, lines: ["京阪本線"]},
+            {name: "藤森", time: 56, lines: ["京阪本線"]},
+            {name: "深草", time: 58, lines: ["京阪本線"]},
+            {name: "鳥羽街道", time: 59, lines: ["京阪本線"]},
+            {name: "中之島", time: 10, lines: ["京阪中之島線"]},
+            {name: "渡辺橋", time: 9, lines: ["京阪中之島線"]},
+            {name: "大江橋", time: 8, lines: ["京阪中之島線"]},
+            {name: "なにわ橋", time: 7, lines: ["京阪中之島線"]},
+            {name: "宮之阪", time: 28, lines: ["京阪交野線"]},
+            {name: "星ヶ丘", time: 30, lines: ["京阪交野線"]},
+            {name: "郡津", time: 34, lines: ["京阪交野線"]},
+            {name: "交野市", time: 36, lines: ["京阪交野線"]},
+            {name: "河内森", time: 38, lines: ["京阪交野線"]},
+            {name: "私市", time: 40, lines: ["京阪交野線"]},
+            {name: "観月橋", time: 52, lines: ["京阪宇治線"]},
+            {name: "桃山南口", time: 54, lines: ["京阪宇治線"]},
+            {name: "六地蔵", time: 56, lines: ["京阪宇治線"]},
+            {name: "木幡", time: 58, lines: ["京阪宇治線"]},
+            {name: "黄檗", time: 60, lines: ["京阪宇治線"]},
+            {name: "大阪上本町", time: 13, lines: ["近鉄奈良線・大阪線", "大阪メトロ谷町線・千日前線"]},
+            {name: "布施", time: 14, lines: ["近鉄奈良線・大阪線"]},
+            {name: "河内永和", time: 16, lines: ["近鉄奈良線", "JR大阪東線"]},
+            {name: "河内小阪", time: 18, lines: ["近鉄奈良線"]},
+            {name: "八戸ノ里", time: 20, lines: ["近鉄奈良線"]},
+            {name: "若江岩田", time: 22, lines: ["近鉄奈良線"]},
+            {name: "河内花園", time: 25, lines: ["近鉄奈良線"]},
+            {name: "東花園", time: 27, lines: ["近鉄奈良線"]},
+            {name: "瓢箪山", time: 29, lines: ["近鉄奈良線"]},
+            {name: "枚岡", time: 31, lines: ["近鉄奈良線"]},
+            {name: "額田", time: 33, lines: ["近鉄奈良線"]},
+            {name: "石切", time: 35, lines: ["近鉄奈良線"]},
+            {name: "生駒", time: 40, lines: ["近鉄奈良線・けいはんな線・生駒線"]},
+            {name: "東生駒", time: 43, lines: ["近鉄奈良線"]},
+            {name: "富雄", time: 46, lines: ["近鉄奈良線"]},
+            {name: "学園前", time: 49, lines: ["近鉄奈良線"]},
+            {name: "菖蒲池", time: 51, lines: ["近鉄奈良線"]},
+            {name: "大和西大寺", time: 54, lines: ["近鉄奈良線・京都線・橿原線"]},
+            {name: "新大宮", time: 57, lines: ["近鉄奈良線"]},
+            {name: "近鉄奈良", time: 60, lines: ["近鉄奈良線"]},
+            {name: "俊徳道", time: 16, lines: ["近鉄大阪線", "JR大阪東線"]},
+            {name: "長瀬", time: 18, lines: ["近鉄大阪線", "JR大阪東線"]},
+            {name: "弥刀", time: 20, lines: ["近鉄大阪線"]},
+            {name: "久宝寺口", time: 22, lines: ["近鉄大阪線"]},
+            {name: "近鉄八尾", time: 24, lines: ["近鉄大阪線"]},
+            {name: "河内山本", time: 27, lines: ["近鉄大阪線"]},
+            {name: "高安", time: 30, lines: ["近鉄大阪線・信貴線"]},
+            {name: "恩智", time: 32, lines: ["近鉄大阪線"]},
+            {name: "法善寺", time: 34, lines: ["近鉄大阪線"]},
+            {name: "堅下", time: 36, lines: ["近鉄大阪線"]},
+            {name: "安堂", time: 38, lines: ["近鉄大阪線"]},
+            {name: "河内国分", time: 40, lines: ["近鉄大阪線"]},
+            {name: "大阪教育大前", time: 42, lines: ["近鉄大阪線"]},
+            {name: "関屋", time: 44, lines: ["近鉄大阪線"]},
+            {name: "二上", time: 46, lines: ["近鉄大阪線"]},
+            {name: "近鉄下田", time: 48, lines: ["近鉄大阪線"]},
+            {name: "五位堂", time: 50, lines: ["近鉄大阪線"]},
+            {name: "香芝", time: 52, lines: ["近鉄大阪線"]},
+            {name: "JR五位堂", time: 54, lines: ["近鉄大阪線"]},
+            {name: "大和高田", time: 58, lines: ["近鉄大阪線・南大阪線"]},
+            {name: "阿部野橋", time: 20, lines: ["近鉄南大阪線"]},
+            {name: "河堀口", time: 22, lines: ["近鉄南大阪線"]},
+            {name: "北田辺", time: 24, lines: ["近鉄南大阪線"]},
+            {name: "今川", time: 26, lines: ["近鉄南大阪線"]},
+            {name: "針中野", time: 28, lines: ["近鉄南大阪線"]},
+            {name: "矢田", time: 30, lines: ["近鉄南大阪線"]},
+            {name: "河内天美", time: 32, lines: ["近鉄南大阪線"]},
+            {name: "布忍", time: 34, lines: ["近鉄南大阪線"]},
+            {name: "高見ノ里", time: 36, lines: ["近鉄南大阪線"]},
+            {name: "河内松原", time: 38, lines: ["近鉄南大阪線"]},
+            {name: "恵我ノ荘", time: 40, lines: ["近鉄南大阪線"]},
+            {name: "高鷲", time: 42, lines: ["近鉄南大阪線"]},
+            {name: "藤井寺", time: 44, lines: ["近鉄南大阪線"]},
+            {name: "土師ノ里", time: 46, lines: ["近鉄南大阪線"]},
+            {name: "道明寺", time: 48, lines: ["近鉄南大阪線"]},
+            {name: "古市", time: 50, lines: ["近鉄南大阪線・長野線"]},
+            {name: "駒ヶ谷", time: 52, lines: ["近鉄南大阪線"]},
+            {name: "上ノ太子", time: 54, lines: ["近鉄南大阪線"]},
+            {name: "二上神社口", time: 56, lines: ["近鉄南大阪線"]},
+            {name: "当麻寺", time: 58, lines: ["近鉄南大阪線"]},
+            {name: "京都", time: 60, lines: ["近鉄京都線", "JR各線"]},
+            {name: "東寺", time: 58, lines: ["近鉄京都線"]},
+            {name: "十条", time: 57, lines: ["近鉄京都線"]},
+            {name: "上鳥羽口", time: 56, lines: ["近鉄京都線"]},
+            {name: "竹田", time: 55, lines: ["近鉄京都線", "京都市営地下鉄烏丸線"]},
+            {name: "伏見", time: 54, lines: ["近鉄京都線"]},
+            {name: "近鉄丹波橋", time: 53, lines: ["近鉄京都線", "京阪本線"]},
+            {name: "桃山御陵前", time: 52, lines: ["近鉄京都線"]},
+            {name: "向島", time: 50, lines: ["近鉄京都線"]},
+            {name: "小倉", time: 48, lines: ["近鉄京都線"]},
+            {name: "伊勢田", time: 46, lines: ["近鉄京都線"]},
+            {name: "大久保", time: 44, lines: ["近鉄京都線"]},
+            {name: "久津川", time: 42, lines: ["近鉄京都線"]},
+            {name: "寺田", time: 40, lines: ["近鉄京都線"]},
+            {name: "富野荘", time: 38, lines: ["近鉄京都線"]},
+            {name: "新田辺", time: 36, lines: ["近鉄京都線"]},
+            {name: "興戸", time: 34, lines: ["近鉄京都線"]},
+            {name: "近鉄宮津", time: 30, lines: ["近鉄京都線"]},
+            {name: "新石切", time: 22, lines: ["近鉄けいはんな線"]},
+            {name: "白庭台", time: 28, lines: ["近鉄けいはんな線"]},
+            {name: "学研北生駒", time: 30, lines: ["近鉄けいはんな線"]},
+            {name: "学研奈良登美ヶ丘", time: 32, lines: ["近鉄けいはんな線"]},
+            {name: "菜畑", time: 42, lines: ["近鉄生駒線"]},
+            {name: "一分", time: 44, lines: ["近鉄生駒線"]},
+            {name: "南生駒", time: 46, lines: ["近鉄生駒線"]},
+            {name: "萩の台", time: 48, lines: ["近鉄生駒線"]},
+            {name: "東山", time: 50, lines: ["近鉄生駒線"]},
+            {name: "元山上口", time: 52, lines: ["近鉄生駒線"]},
+            {name: "平群", time: 54, lines: ["近鉄生駒線"]},
+            {name: "竜田川", time: 56, lines: ["近鉄生駒線"]},
+            {name: "勢野北口", time: 58, lines: ["近鉄生駒線"]},
+            {name: "服部川", time: 32, lines: ["近鉄信貴線"]},
+            {name: "信貴山口", time: 34, lines: ["近鉄信貴線"]},
+            {name: "中津", time: 15, lines: ["阪急京都線・宝塚線・神戸線", "大阪メトロ御堂筋線"]},
+            {name: "十三", time: 17, lines: ["阪急京都線・宝塚線・神戸線"]},
+            {name: "南方", time: 19, lines: ["阪急京都線", "大阪メトロ御堂筋線"]},
+            {name: "崇禅寺", time: 21, lines: ["阪急京都線"]},
+            {name: "淡路", time: 23, lines: ["阪急京都線・千里線"]},
+            {name: "上新庄", time: 25, lines: ["阪急京都線"]},
+            {name: "相川", time: 27, lines: ["阪急京都線"]},
+            {name: "正雀", time: 29, lines: ["阪急京都線"]},
+            {name: "摂津市", time: 31, lines: ["阪急京都線"]},
+            {name: "南茨木", time: 34, lines: ["阪急京都線", "大阪モノレール"]},
+            {name: "茨木市", time: 36, lines: ["阪急京都線"]},
+            {name: "総持寺", time: 38, lines: ["阪急京都線"]},
+            {name: "富田", time: 40, lines: ["阪急京都線"]},
+            {name: "高槻市", time: 43, lines: ["阪急京都線"]},
+            {name: "上牧", time: 46, lines: ["阪急京都線"]},
+            {name: "水無瀬", time: 48, lines: ["阪急京都線"]},
+            {name: "大山崎", time: 50, lines: ["阪急京都線"]},
+            {name: "長岡天神", time: 53, lines: ["阪急京都線"]},
+            {name: "西山天王山", time: 55, lines: ["阪急京都線"]},
+            {name: "桂", time: 58, lines: ["阪急京都線・嵐山線"]},
+            {name: "庄内", time: 20, lines: ["阪急宝塚線"]},
+            {name: "服部天神", time: 22, lines: ["阪急宝塚線"]},
+            {name: "曽根", time: 24, lines: ["阪急宝塚線"]},
+            {name: "岡町", time: 26, lines: ["阪急宝塚線"]},
+            {name: "豊中", time: 28, lines: ["阪急宝塚線"]},
+            {name: "蛍池", time: 30, lines: ["阪急宝塚線", "大阪モノレール"]},
+            {name: "石橋阪大前", time: 32, lines: ["阪急宝塚線・箕面線"]},
+            {name: "池田", time: 35, lines: ["阪急宝塚線"]},
+            {name: "川西能勢口", time: 40, lines: ["阪急宝塚線", "能勢電鉄"]},
+            {name: "雲雀丘花屋敷", time: 42, lines: ["阪急宝塚線"]},
+            {name: "山本", time: 44, lines: ["阪急宝塚線"]},
+            {name: "中山観音", time: 46, lines: ["阪急宝塚線"]},
+            {name: "売布神社", time: 48, lines: ["阪急宝塚線"]},
+            {name: "清荒神", time: 50, lines: ["阪急宝塚線"]},
+            {name: "塚本", time: 15, lines: ["阪急神戸線"]},
+            {name: "神崎川", time: 18, lines: ["阪急神戸線"]},
+            {name: "園田", time: 21, lines: ["阪急神戸線"]},
+            {name: "武庫之荘", time: 27, lines: ["阪急神戸線"]},
+            {name: "西宮北口", time: 32, lines: ["阪急神戸線・今津線"]},
+            {name: "夙川", time: 35, lines: ["阪急神戸線"]},
+            {name: "芦屋川", time: 38, lines: ["阪急神戸線"]},
+            {name: "岡本", time: 42, lines: ["阪急神戸線"]},
+            {name: "御影", time: 44, lines: ["阪急神戸線", "阪神本線"]},
+            {name: "六甲", time: 47, lines: ["阪急神戸線"]},
+            {name: "王子公園", time: 50, lines: ["阪急神戸線"]},
+            {name: "春日野道", time: 52, lines: ["阪急神戸線"]},
+            {name: "神戸三宮", time: 55, lines: ["阪急神戸線", "JR・阪神・神戸市営地下鉄"]},
+            {name: "花隈", time: 57, lines: ["阪急神戸線"]},
+            {name: "高速神戸", time: 58, lines: ["阪急神戸線"]},
+            {name: "柴島", time: 12, lines: ["阪急千里線"]},
+            {name: "下新庄", time: 15, lines: ["阪急千里線"]},
+            {name: "豊津", time: 20, lines: ["阪急千里線"]},
+            {name: "関大前", time: 22, lines: ["阪急千里線"]},
+            {name: "千里山", time: 24, lines: ["阪急千里線"]},
+            {name: "南千里", time: 27, lines: ["阪急千里線"]},
+            {name: "山田", time: 29, lines: ["阪急千里線"]},
+            {name: "北千里", time: 32, lines: ["阪急千里線"]},
+            {name: "今津", time: 30, lines: ["阪急今津線", "阪神本線"]},
+            {name: "阪神国道", time: 32, lines: ["阪急今津線"]},
+            {name: "西宮北口", time: 34, lines: ["阪急今津線・神戸線"]},
+            {name: "門戸厄神", time: 36, lines: ["阪急今津線"]},
+            {name: "甲東園", time: 38, lines: ["阪急今津線"]},
+            {name: "宝塚南口", time: 55, lines: ["阪急今津線"]},
+            {name: "逆瀬川", time: 56, lines: ["阪急今津線"]},
+            {name: "小林", time: 58, lines: ["阪急今津線"]},
+            {name: "仁川", time: 60, lines: ["阪急今津線"]},
+            {name: "桜井", time: 34, lines: ["阪急箕面線"]},
+            {name: "牧落", time: 36, lines: ["阪急箕面線"]},
+            {name: "箕面", time: 38, lines: ["阪急箕面線"]},
+            {name: "野田", time: 17, lines: ["阪神本線", "大阪メトロ千日前線"]},
+            {name: "千船", time: 20, lines: ["阪神本線"]},
+            {name: "姫島", time: 22, lines: ["阪神本線"]},
+            {name: "杭瀬", time: 24, lines: ["阪神本線"]},
+            {name: "大物", time: 26, lines: ["阪神本線"]},
+            {name: "出屋敷", time: 30, lines: ["阪神本線"]},
+            {name: "尼崎センタープール前", time: 32, lines: ["阪神本線"]},
+            {name: "武庫川", time: 34, lines: ["阪神本線"]},
+            {name: "鳴尾・武庫川女子大前", time: 36, lines: ["阪神本線"]},
+            {name: "甲子園", time: 38, lines: ["阪神本線"]},
+            {name: "久寿川", time: 40, lines: ["阪神本線"]},
+            {name: "西宮", time: 44, lines: ["阪神本線"]},
+            {name: "香櫨園", time: 46, lines: ["阪神本線"]},
+            {name: "打出", time: 48, lines: ["阪神本線"]},
+            {name: "深江", time: 52, lines: ["阪神本線"]},
+            {name: "青木", time: 54, lines: ["阪神本線"]},
+            {name: "魚崎", time: 56, lines: ["阪神本線"]},
+            {name: "千鳥橋", time: 20, lines: ["阪神なんば線"]},
+            {name: "今宮戎", time: 20, lines: ["南海本線"]},
+            {name: "萩ノ茶屋", time: 23, lines: ["南海本線"]},
+            {name: "岸里玉出", time: 27, lines: ["南海本線・高野線"]},
+            {name: "粉浜", time: 29, lines: ["南海本線"]},
+            {name: "住吉大社", time: 31, lines: ["南海本線", "阪堺電軌"]},
+            {name: "住ノ江", time: 33, lines: ["南海本線"]},
+            {name: "七道", time: 37, lines: ["南海本線"]},
+            {name: "堺", time: 39, lines: ["南海本線", "阪堺電軌"]},
+            {name: "湊", time: 41, lines: ["南海本線"]},
+            {name: "石津川", time: 43, lines: ["南海本線"]},
+            {name: "諏訪ノ森", time: 45, lines: ["南海本線"]},
+            {name: "浜寺公園", time: 47, lines: ["南海本線"]},
+            {name: "羽衣", time: 49, lines: ["南海本線", "JR阪和線"]},
+            {name: "高石", time: 51, lines: ["南海本線"]},
+            {name: "北助松", time: 53, lines: ["南海本線"]},
+            {name: "松ノ浜", time: 55, lines: ["南海本線"]},
+            {name: "泉大津", time: 57, lines: ["南海本線"]},
+            {name: "忠岡", time: 59, lines: ["南海本線"]},
+            {name: "汐見橋", time: 25, lines: ["南海高野線"]},
+            {name: "芦原町", time: 27, lines: ["南海高野線"]},
+            {name: "木津川", time: 29, lines: ["南海高野線"]},
+            {name: "帝塚山", time: 30, lines: ["南海高野線"]},
+            {name: "住吉東", time: 32, lines: ["南海高野線"]},
+            {name: "沢ノ町", time: 34, lines: ["南海高野線"]},
+            {name: "我孫子前", time: 36, lines: ["南海高野線"]},
+            {name: "浅香山", time: 38, lines: ["南海高野線"]},
+            {name: "堺東", time: 40, lines: ["南海高野線"]},
+            {name: "百舌鳥八幡", time: 44, lines: ["南海高野線"]},
+            {name: "白鷺", time: 48, lines: ["南海高野線"]},
+            {name: "初芝", time: 50, lines: ["南海高野線"]},
+            {name: "萩原天神", time: 52, lines: ["南海高野線"]},
+            {name: "北野田", time: 54, lines: ["南海高野線"]},
+            {name: "狭山", time: 56, lines: ["南海高野線"]},
+            {name: "大阪狭山市", time: 58, lines: ["南海高野線"]},
+            {name: "南摂津", time: 15, lines: ["大阪モノレール"]},
+            {name: "摂津", time: 17, lines: ["大阪モノレール"]},
+            {name: "沢良宜", time: 22, lines: ["大阪モノレール"]},
+            {name: "宇野辺", time: 24, lines: ["大阪モノレール"]},
+            {name: "万博記念公園", time: 28, lines: ["大阪モノレール"]},
+            {name: "公園東口", time: 30, lines: ["大阪モノレール"]},
+            {name: "千里中央", time: 33, lines: ["大阪モノレール"]},
+            {name: "少路", time: 35, lines: ["大阪モノレール"]},
+            {name: "柴原阪大前", time: 37, lines: ["大阪モノレール"]},
+            {name: "大阪空港", time: 41, lines: ["大阪モノレール"]},
+            {name: "新今宮駅前", time: 23, lines: ["阪堺電軌"]},
+            {name: "今池", time: 24, lines: ["阪堺電軌"]},
+            {name: "今船", time: 25, lines: ["阪堺電軌"]},
+            {name: "松田町", time: 26, lines: ["阪堺電軌"]},
+            {name: "北天下茶屋", time: 27, lines: ["阪堺電軌"]},
+            {name: "聖天坂", time: 28, lines: ["阪堺電軌"]},
+            {name: "天神ノ森", time: 29, lines: ["阪堺電軌"]},
+            {name: "東玉出", time: 30, lines: ["阪堺電軌"]},
+            {name: "塚西", time: 31, lines: ["阪堺電軌"]},
+            {name: "東粉浜", time: 32, lines: ["阪堺電軌"]},
+            {name: "住吉", time: 33, lines: ["阪堺電軌"]},
+            {name: "住吉鳥居前", time: 34, lines: ["阪堺電軌"]},
+            {name: "細井川", time: 35, lines: ["阪堺電軌"]},
+            {name: "安立町", time: 36, lines: ["阪堺電軌"]},
+            {name: "我孫子道", time: 37, lines: ["阪堺電軌"]},
+            {name: "大和川", time: 38, lines: ["阪堺電軌"]},
+            {name: "高須神社", time: 39, lines: ["阪堺電軌"]},
+            {name: "綾ノ町", time: 40, lines: ["阪堺電軌"]},
+            {name: "神明町", time: 41, lines: ["阪堺電軌"]},
+            {name: "妙国寺前", time: 42, lines: ["阪堺電軌"]},
+            {name: "花田口", time: 43, lines: ["阪堺電軌"]},
+            {name: "大小路", time: 44, lines: ["阪堺電軌"]},
+            {name: "宿院", time: 45, lines: ["阪堺電軌"]},
+            {name: "寺地町", time: 46, lines: ["阪堺電軌"]},
+            {name: "御陵前", time: 47, lines: ["阪堺電軌"]},
+            {name: "東湊", time: 48, lines: ["阪堺電軌"]},
+            {name: "石津", time: 49, lines: ["阪堺電軌"]},
+            {name: "船尾", time: 50, lines: ["阪堺電軌"]},
+            {name: "浜寺駅前", time: 51, lines: ["阪堺電軌"]},
+            {name: "天王寺駅前", time: 18, lines: ["阪堺電軌"]},
+            {name: "松虫", time: 20, lines: ["阪堺電軌"]},
+            {name: "東天下茶屋", time: 21, lines: ["阪堺電軌"]},
+            {name: "北畠", time: 22, lines: ["阪堺電軌"]},
+            {name: "姫松", time: 23, lines: ["阪堺電軌"]},
+            {name: "帝塚山三丁目", time: 24, lines: ["阪堺電軌"]},
+            {name: "帝塚山四丁目", time: 25, lines: ["阪堺電軌"]},
+            {name: "神ノ木", time: 26, lines: ["阪堺電軌"]},
+        ];
+
+        let minTimeValue = 0;
+        let maxTimeValue = 60;
+        let isSpinning = false;
+        let spinInterval;
+        
+        const minTimeSlider = document.getElementById('minTime');
+        const maxTimeSlider = document.getElementById('maxTime');
+        const minLabel = document.getElementById('minLabel');
+        const maxLabel = document.getElementById('maxLabel');
+        const rangeFill = document.getElementById('rangeFill');
+        const stationCount = document.getElementById('stationCount');
+        const rouletteDisplay = document.getElementById('rouletteDisplay');
+        
+        function updateSliders() {
+            const minVal = parseInt(minTimeSlider.value);
+            const maxVal = parseInt(maxTimeSlider.value);
+            
+            if (minVal > maxVal - 5) {
+                if (this === minTimeSlider) {
+                    minTimeSlider.value = maxVal - 5;
+                } else {
+                    maxTimeSlider.value = minVal + 5;
+                }
+            }
+            
+            minTimeValue = parseInt(minTimeSlider.value);
+            maxTimeValue = parseInt(maxTimeSlider.value);
+            
+            minLabel.textContent = minTimeValue;
+            maxLabel.textContent = maxTimeValue;
+            
+            const percent1 = (minTimeValue / 60) * 100;
+            const percent2 = (maxTimeValue / 60) * 100;
+            
+            rangeFill.style.left = percent1 + '%';
+            rangeFill.style.width = (percent2 - percent1) + '%';
+            
+            updateStationCount();
+        }
+        
+        function updateStationCount() {
+            const filtered = stations.filter(s => s.time >= minTimeValue && s.time <= maxTimeValue);
+            stationCount.textContent = `STATIONS: ${filtered.length}`;
+        }
+        
+        minTimeSlider.addEventListener('input', updateSliders);
+        maxTimeSlider.addEventListener('input', updateSliders);
+        
+        function startRoulette() {
+            if (isSpinning) return;
+            
+            const filteredStations = stations.filter(s => s.time >= minTimeValue && s.time <= maxTimeValue);
+            
+            if (filteredStations.length === 0) {
+                alert('指定した時間範囲に該当する駅がありません。');
+                return;
+            }
+            
+            isSpinning = true;
+            const button = document.getElementById('startButton');
+            const display = document.getElementById('stationDisplay');
+            const travelTime = document.getElementById('travelTime');
+            const resultInfo = document.getElementById('resultInfo');
+            
+            button.disabled = true;
+            button.querySelector('span').textContent = '抽選中...';
+            rouletteDisplay.classList.add('spinning');
+            resultInfo.classList.remove('show');
+            
+            const spinDuration = 3000;
+            const startTime = Date.now();
+            
+            spinInterval = setInterval(() => {
+                const randomStation = filteredStations[Math.floor(Math.random() * filteredStations.length)];
+                display.textContent = randomStation.name;
+                travelTime.textContent = `FROM KYOBASHI: ${randomStation.time} MIN`;
+                
+                if (Date.now() - startTime > spinDuration) {
+                    stopRoulette(filteredStations);
+                }
+            }, 100);
+        }
+        
+        function stopRoulette(filteredStations) {
+            clearInterval(spinInterval);
+            
+            const display = document.getElementById('stationDisplay');
+            const travelTime = document.getElementById('travelTime');
+            const button = document.getElementById('startButton');
+            const resultInfo = document.getElementById('resultInfo');
+            const resultTitle = document.getElementById('resultTitle');
+            const lineInfo = document.getElementById('lineInfo');
+            
+            const finalStation = filteredStations[Math.floor(Math.random() * filteredStations.length)];
+            display.textContent = finalStation.name;
+            travelTime.textContent = `FROM KYOBASHI: ${finalStation.time} MIN`;
+            rouletteDisplay.classList.remove('spinning');
+            
+            resultTitle.textContent = `🎯 ${finalStation.name}駅に決定`;
+            lineInfo.textContent = finalStation.lines.join(' / ');
+            resultInfo.classList.add('show');
+            
+            button.disabled = false;
+            button.querySelector('span').textContent = 'もう一度回す';
+            isSpinning = false;
+        }
+        
+        updateSliders();
+    </script>
+</body>
+</html>
